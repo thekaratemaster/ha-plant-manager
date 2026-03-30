@@ -1,0 +1,31 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Plant Manager",
+        "description": "Connect Home Assistant to the Plant Manager add-on API.",
+        "data": {
+          "base_url": "Plant Manager API base URL",
+          "scan_interval": "Refresh interval in seconds"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to connect to the Plant Manager API."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Plant Manager options",
+        "data": {
+          "base_url": "Plant Manager API base URL",
+          "scan_interval": "Refresh interval in seconds"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to connect to the Plant Manager API."
+    }
+  }
+}

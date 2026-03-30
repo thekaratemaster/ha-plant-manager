@@ -1,0 +1,29 @@
+mark_watered:
+  name: Mark watered
+  description: Mark a plant as watered in Plant Manager.
+  fields:
+    plant_id:
+      required: true
+      example: "1234abcd"
+      selector:
+        text:
+    entry_id:
+      required: false
+      selector:
+        text:
+refresh:
+  name: Refresh
+  description: Refresh Plant Manager entities from the add-on API.
+  fields:
+    entry_id:
+      required: false
+      selector:
+        text:
+send_digest_now:
+  name: Send digest now
+  description: Send the Plant Manager digest immediately.
+  fields:
+    entry_id:
+      required: false
+      selector:
+        text:

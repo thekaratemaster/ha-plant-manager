@@ -1,0 +1,8 @@
+{
+  "domain": "plant_manager",
+  "name": "Plant Manager",
+  "version": "0.1.0",
+  "config_flow": true,
+  "integration_type": "service",
+  "iot_class": "local_polling"
+}
