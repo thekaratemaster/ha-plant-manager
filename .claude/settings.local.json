@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//e/Codebase/**)",
+      "Bash(find . -maxdepth 2 -type d -not -path */.* -not -path */__pycache__*)",
+      "Bash(python3 -c \":*)",
+      "Bash(python -m pytest tests/ -v)",
+      "Bash(pip install:*)"
+    ]
+  }
+}

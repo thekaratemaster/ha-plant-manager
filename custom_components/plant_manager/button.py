@@ -1,13 +1,18 @@
 from __future__ import annotations
 
+import logging
+
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .api import PlantManagerApiError
 from .const import DOMAIN
 from .coordinator import PlantManagerCoordinator
 from .entity import PlantManagerPlantEntity
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -46,5 +51,9 @@ class PlantMarkWateredButton(PlantManagerPlantEntity, ButtonEntity):
         self._attr_name = "Mark watered"
 
     async def async_press(self) -> None:
-        await self._api.mark_watered(self._plant_id)
+        try:
+            await self._api.mark_watered(self._plant_id)
+        except PlantManagerApiError as err:
+            _LOGGER.error("Failed to mark plant %s as watered: %s", self._plant_id, err)
+            return
         await self.coordinator.async_request_refresh()

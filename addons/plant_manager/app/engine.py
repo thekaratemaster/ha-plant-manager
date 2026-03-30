@@ -161,13 +161,15 @@ def format_digest_message(snapshots: list[PlantSnapshot]) -> str:
         lines.append("Indoor:")
         for snapshot in indoor:
             location = snapshot.plant.location_label or "Unassigned"
-            lines.append(f"- {snapshot.plant.name} ({location}): {snapshot.moisture:.0f}%")
+            moisture_str = f"{snapshot.moisture:.0f}%" if snapshot.moisture is not None else "N/A"
+            lines.append(f"- {snapshot.plant.name} ({location}): {moisture_str}")
     if outdoor:
         lines.append("")
         lines.append("Outdoor:")
         for snapshot in outdoor:
             location = snapshot.plant.location_label or "Unassigned"
-            lines.append(f"- {snapshot.plant.name} ({location}): {snapshot.moisture:.0f}%")
+            moisture_str = f"{snapshot.moisture:.0f}%" if snapshot.moisture is not None else "N/A"
+            lines.append(f"- {snapshot.plant.name} ({location}): {moisture_str}")
     return "\n".join(lines)
 
 

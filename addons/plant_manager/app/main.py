@@ -16,7 +16,7 @@ DB_PATH = Path("/data/plant_manager.db")
 
 class PlantCreateRequest(BaseModel):
     name: str = Field(min_length=1)
-    zone: str = Field(regex="^(indoor|outdoor)$")
+    zone: str = Field(pattern="^(indoor|outdoor)$")
     location_label: str = ""
     moisture_sensor_entity_id: str = Field(min_length=1)
     battery_sensor_entity_id: str | None = None
@@ -29,7 +29,7 @@ class PlantCreateRequest(BaseModel):
 
 class PlantUpdateRequest(BaseModel):
     name: str | None = None
-    zone: str | None = Field(default=None, regex="^(indoor|outdoor)$")
+    zone: str | None = Field(default=None, pattern="^(indoor|outdoor)$")
     location_label: str | None = None
     moisture_sensor_entity_id: str | None = None
     battery_sensor_entity_id: str | None = None

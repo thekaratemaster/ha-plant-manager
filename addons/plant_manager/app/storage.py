@@ -132,7 +132,8 @@ class PlantManagerStorage:
                 values,
             )
         plant = self.get_plant(plant_id)
-        assert plant is not None
+        if plant is None:
+            raise ValueError(f"Plant {plant_id} not found after insert")
         return plant
 
     def update_plant(self, plant_id: str, changes: dict[str, Any]) -> Plant | None:

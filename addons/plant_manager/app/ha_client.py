@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import logging
 import os
 from typing import Any
 
 import aiohttp
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class HomeAssistantApiError(RuntimeError):
@@ -20,6 +23,11 @@ class HomeAssistantApiClient:
     ) -> None:
         self._base_url = (base_url or os.getenv("HA_API_BASE_URL") or "http://supervisor/core/api").rstrip("/")
         self._token = token or os.getenv("SUPERVISOR_TOKEN") or os.getenv("HASSIO_TOKEN")
+        if not self._token:
+            _LOGGER.warning(
+                "No Home Assistant auth token found (SUPERVISOR_TOKEN/HASSIO_TOKEN). "
+                "API calls will fail until a token is available."
+            )
         self._timeout = aiohttp.ClientTimeout(total=timeout_seconds)
         self._session: aiohttp.ClientSession | None = None
 
