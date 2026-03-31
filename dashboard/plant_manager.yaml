@@ -1,0 +1,102 @@
+title: Plant Manager
+views:
+  - title: Plants
+    path: plant-manager
+    icon: mdi:flower
+    type: sections
+    sections:
+      - type: grid
+        title: Summary
+        cards:
+          - type: tile
+            entity: sensor.plant_manager_plants_needing_water
+            name: Plants needing water
+            icon: mdi:water-alert
+            layout_options:
+              grid_columns: 2
+              grid_rows: 1
+          - type: tile
+            entity: sensor.plant_manager_indoor_needing_water
+            name: Indoor needing water
+            icon: mdi:home-flood
+            layout_options:
+              grid_columns: 2
+              grid_rows: 1
+          - type: tile
+            entity: sensor.plant_manager_outdoor_needing_water
+            name: Outdoor needing water
+            icon: mdi:sprout
+            layout_options:
+              grid_columns: 2
+              grid_rows: 1
+
+      - type: grid
+        title: Moisture
+        cards:
+          - type: custom:auto-entities
+            card:
+              type: grid
+              square: false
+              columns: 2
+            card_param: cards
+            filter:
+              include:
+                - integration: plant_manager
+                  entity_id: "*moisture*"
+                  options:
+                    type: gauge
+                    needle: true
+                    min: 0
+                    max: 100
+                    severity:
+                      red: 0
+                      yellow: 30
+                      green: 50
+                    layout_options:
+                      grid_columns: 2
+                      grid_rows: auto
+            sort:
+              method: friendly_name
+
+      - type: grid
+        title: Status
+        cards:
+          - type: custom:auto-entities
+            card:
+              type: entities
+              title: Plant Status
+            filter:
+              include:
+                - integration: plant_manager
+                  entity_id: "*_status"
+                  options:
+                    icon: mdi:leaf
+            sort:
+              method: friendly_name
+          - type: custom:auto-entities
+            card:
+              type: entities
+              title: Days Since Watered
+            filter:
+              include:
+                - integration: plant_manager
+                  entity_id: "*days_since_watered*"
+                  options:
+                    icon: mdi:calendar-clock
+            sort:
+              method: friendly_name
+
+      - type: grid
+        title: Actions
+        cards:
+          - type: custom:auto-entities
+            card:
+              type: entities
+              title: Mark as Watered
+            filter:
+              include:
+                - integration: plant_manager
+                  domain: button
+                  entity_id: "*mark_watered*"
+            sort:
+              method: friendly_name
