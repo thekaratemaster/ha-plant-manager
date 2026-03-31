@@ -3,10 +3,14 @@
     "step": {
       "user": {
         "title": "Plant Manager",
-        "description": "Set up plant monitoring. You can add plants after setup via Configure.",
+        "description": "Plant Manager monitors your soil moisture sensors and sends watering reminders. After setup, go to Configure to add your plants. Each plant is linked to a moisture sensor entity and optionally a battery sensor and Google Calendar.",
         "data": {
           "notify_service": "Notification service (e.g. notify.mobile_app_phone)",
           "digest_times": "Daily digest times, comma-separated (e.g. 07:00,18:00)"
+        },
+        "data_description": {
+          "notify_service": "The full Home Assistant notify service to use for watering reminders. Find yours under Developer Tools → Services, look for notify.*. Leave blank to skip notifications.",
+          "digest_times": "One or more times per day (24h format) when Plant Manager will check for dry plants and send a reminder. Separate multiple times with commas, e.g. 07:00,18:00."
         }
       }
     }
@@ -15,6 +19,7 @@
     "step": {
       "init": {
         "title": "Plant Manager",
+        "description": "Manage your plants and notification settings. Use **Add a plant** to link a new soil sensor. Use **Configure** at any time to edit thresholds, add a battery sensor, or connect a calendar.",
         "menu_options": {
           "add_plant": "Add a plant",
           "edit_plant": "Edit a plant",
@@ -37,23 +42,38 @@
           "moisture_sensor_entity_id": "Moisture sensor",
           "battery_sensor_entity_id": "Battery sensor (optional)",
           "calendar_entity_id": "Calendar (optional)",
-          "low_threshold": "Low moisture threshold",
-          "battery_low_threshold": "Battery low threshold (% for % sensors, volts for voltage sensors e.g. 1.1 for AA)",
+          "low_threshold": "Low moisture threshold (%)",
+          "battery_low_threshold": "Battery low threshold",
           "min_increase": "Minimum moisture increase to detect watering (%)",
           "min_interval_days": "Minimum days between watering notifications",
           "alerts_enabled": "Enable alerts",
           "notes": "Notes"
+        },
+        "data_description": {
+          "moisture_sensor_entity_id": "The sensor entity that reports soil moisture for this plant.",
+          "battery_sensor_entity_id": "Optional. Monitors the sensor battery and alerts when low.",
+          "calendar_entity_id": "Optional. When a watering reminder fires, an all-day 'Water {plant}' event will be created on this calendar.",
+          "low_threshold": "The plant is flagged as needing water when moisture drops below this value.",
+          "battery_low_threshold": "For WH51 and similar voltage-reporting sensors, enter the voltage level to treat as low (e.g. 1.1 for AA batteries). For percentage-based battery sensors, enter a percentage (e.g. 15).",
+          "min_increase": "A moisture reading must rise by at least this amount to be counted as a watering event. Prevents false detections from sensor noise.",
+          "min_interval_days": "Suppresses repeat watering reminders for this many days after the last notification."
         }
       },
       "settings": {
         "title": "Notification settings",
+        "description": "Configure where and when watering reminders are sent. Plant Manager sends a digest listing all dry plants at the scheduled times — it only sends if at least one plant needs water.",
         "data": {
           "notify_service": "Notification service (e.g. notify.mobile_app_phone)",
           "digest_times": "Daily digest times, comma-separated (e.g. 07:00,18:00)"
+        },
+        "data_description": {
+          "notify_service": "The full Home Assistant notify service to use for watering reminders. Find yours under Developer Tools → Services, look for notify.*. Leave blank to skip notifications.",
+          "digest_times": "One or more times per day (24h format) when Plant Manager will check for dry plants and send a reminder. Separate multiple times with commas, e.g. 07:00,18:00."
         }
       },
       "add_plant": {
         "title": "Add plant",
+        "description": "Link a soil moisture sensor to a new plant. The plant will appear as a device in Home Assistant with status, moisture, last-watered, and days-since-watered entities.",
         "data": {
           "name": "Plant name",
           "zone": "Zone",
@@ -61,16 +81,29 @@
           "moisture_sensor_entity_id": "Moisture sensor",
           "battery_sensor_entity_id": "Battery sensor (optional)",
           "calendar_entity_id": "Calendar (optional)",
-          "low_threshold": "Low moisture threshold",
-          "battery_low_threshold": "Battery low threshold (% for % sensors, volts for voltage sensors e.g. 1.1 for AA)",
+          "low_threshold": "Low moisture threshold (%)",
+          "battery_low_threshold": "Battery low threshold",
           "min_increase": "Minimum moisture increase to detect watering (%)",
           "min_interval_days": "Minimum days between watering notifications",
           "alerts_enabled": "Enable alerts",
           "notes": "Notes"
+        },
+        "data_description": {
+          "zone": "Indoor or outdoor. Used to group plants in summary counts and digest notifications.",
+          "location_label": "Free-text location shown in notifications and calendar events (e.g. 'Family Room', 'Front Door').",
+          "moisture_sensor_entity_id": "The sensor entity that reports soil moisture for this plant.",
+          "battery_sensor_entity_id": "Optional. Monitors the sensor battery and alerts when low.",
+          "calendar_entity_id": "Optional. When a watering reminder fires, an all-day 'Water {plant}' event will be created on this calendar.",
+          "low_threshold": "The plant is flagged as needing water when moisture drops below this value. Typical indoor plants: 25–35%. Succulents/cacti: 10–15%.",
+          "battery_low_threshold": "For WH51 and similar voltage-reporting sensors, enter the voltage level to treat as low (e.g. 1.1 for AA batteries). For percentage-based battery sensors, enter a percentage (e.g. 15).",
+          "min_increase": "A moisture reading must rise by at least this amount to be counted as a watering event. Prevents false detections from sensor noise. Recommended: 5–10%.",
+          "min_interval_days": "Suppresses repeat watering reminders for this many days after the last notification. Set to 1 to allow daily reminders.",
+          "alerts_enabled": "Uncheck to silence all notifications for this plant without removing it."
         }
       },
       "remove_plant": {
         "title": "Remove plant",
+        "description": "Select one or more plants to remove. The plant device and all its entities will be removed from Home Assistant.",
         "data": {
           "plant_ids": "Plants to remove"
         }
