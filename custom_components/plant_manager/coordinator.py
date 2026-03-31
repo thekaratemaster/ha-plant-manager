@@ -11,6 +11,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
     CONF_ALERTS_ENABLED,
+    CONF_BATTERY_LOW_THRESHOLD,
     CONF_PLANT_CALENDAR,
     CONF_BATTERY_ENTITY,
     CONF_LOW_THRESHOLD,
@@ -23,6 +24,7 @@ from .const import (
     CONF_PLANT_NOTES,
     CONF_PLANT_ZONE,
     CONF_PLANTS,
+    DEFAULT_BATTERY_LOW_THRESHOLD,
     DOMAIN,
 )
 from .engine import (
@@ -293,6 +295,7 @@ class PlantManagerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             moisture_sensor_entity_id=plant_config[CONF_MOISTURE_ENTITY],
             battery_sensor_entity_id=plant_config.get(CONF_BATTERY_ENTITY) or None,
             low_threshold=float(plant_config[CONF_LOW_THRESHOLD]),
+            battery_low_threshold=float(plant_config.get(CONF_BATTERY_LOW_THRESHOLD, DEFAULT_BATTERY_LOW_THRESHOLD)),
             min_increase=float(plant_config[CONF_MIN_INCREASE]),
             min_interval_days=int(plant_config[CONF_MIN_INTERVAL_DAYS]),
             alerts_enabled=bool(plant_config.get(CONF_ALERTS_ENABLED, True)),

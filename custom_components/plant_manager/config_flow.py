@@ -12,6 +12,7 @@ import homeassistant.helpers.selector as selector
 from .const import (
     CONF_ALERTS_ENABLED,
     CONF_BATTERY_ENTITY,
+    CONF_BATTERY_LOW_THRESHOLD,
     CONF_PLANT_CALENDAR,
     CONF_DIGEST_TIMES,
     CONF_LOW_THRESHOLD,
@@ -24,6 +25,7 @@ from .const import (
     CONF_PLANT_NOTES,
     CONF_PLANT_ZONE,
     CONF_PLANTS,
+    DEFAULT_BATTERY_LOW_THRESHOLD,
     DEFAULT_DIGEST_TIMES,
     DEFAULT_LOW_THRESHOLD,
     DEFAULT_MIN_INCREASE,
@@ -119,6 +121,7 @@ class PlantManagerOptionsFlow(config_entries.OptionsFlow):
                 CONF_BATTERY_ENTITY: user_input.get(CONF_BATTERY_ENTITY) or None,
                 CONF_PLANT_CALENDAR: user_input.get(CONF_PLANT_CALENDAR) or None,
                 CONF_LOW_THRESHOLD: float(user_input[CONF_LOW_THRESHOLD]),
+                CONF_BATTERY_LOW_THRESHOLD: float(user_input[CONF_BATTERY_LOW_THRESHOLD]),
                 CONF_MIN_INCREASE: float(user_input[CONF_MIN_INCREASE]),
                 CONF_MIN_INTERVAL_DAYS: int(user_input[CONF_MIN_INTERVAL_DAYS]),
                 CONF_ALERTS_ENABLED: bool(user_input.get(CONF_ALERTS_ENABLED, True)),
@@ -149,7 +152,10 @@ class PlantManagerOptionsFlow(config_entries.OptionsFlow):
                         selector.EntitySelectorConfig(domain="calendar")
                     ),
                     vol.Required(CONF_LOW_THRESHOLD, default=DEFAULT_LOW_THRESHOLD): selector.NumberSelector(
-                        selector.NumberSelectorConfig(min=0, max=100, step=1, unit_of_measurement="%")
+                        selector.NumberSelectorConfig(min=0, max=100, step=0.1)
+                    ),
+                    vol.Required(CONF_BATTERY_LOW_THRESHOLD, default=DEFAULT_BATTERY_LOW_THRESHOLD): selector.NumberSelector(
+                        selector.NumberSelectorConfig(min=0, max=100, step=0.1)
                     ),
                     vol.Required(CONF_MIN_INCREASE, default=DEFAULT_MIN_INCREASE): selector.NumberSelector(
                         selector.NumberSelectorConfig(min=1, max=100, step=1, unit_of_measurement="%")
@@ -205,6 +211,7 @@ class PlantManagerOptionsFlow(config_entries.OptionsFlow):
                 CONF_BATTERY_ENTITY: user_input.get(CONF_BATTERY_ENTITY) or None,
                 CONF_PLANT_CALENDAR: user_input.get(CONF_PLANT_CALENDAR) or None,
                 CONF_LOW_THRESHOLD: float(user_input[CONF_LOW_THRESHOLD]),
+                CONF_BATTERY_LOW_THRESHOLD: float(user_input[CONF_BATTERY_LOW_THRESHOLD]),
                 CONF_MIN_INCREASE: float(user_input[CONF_MIN_INCREASE]),
                 CONF_MIN_INTERVAL_DAYS: int(user_input[CONF_MIN_INTERVAL_DAYS]),
                 CONF_ALERTS_ENABLED: bool(user_input.get(CONF_ALERTS_ENABLED, True)),
@@ -235,7 +242,10 @@ class PlantManagerOptionsFlow(config_entries.OptionsFlow):
                         selector.EntitySelectorConfig(domain="calendar")
                     ),
                     vol.Required(CONF_LOW_THRESHOLD, default=plant.get(CONF_LOW_THRESHOLD, DEFAULT_LOW_THRESHOLD)): selector.NumberSelector(
-                        selector.NumberSelectorConfig(min=0, max=100, step=1, unit_of_measurement="%")
+                        selector.NumberSelectorConfig(min=0, max=100, step=0.1)
+                    ),
+                    vol.Required(CONF_BATTERY_LOW_THRESHOLD, default=plant.get(CONF_BATTERY_LOW_THRESHOLD, DEFAULT_BATTERY_LOW_THRESHOLD)): selector.NumberSelector(
+                        selector.NumberSelectorConfig(min=0, max=100, step=0.1)
                     ),
                     vol.Required(CONF_MIN_INCREASE, default=plant.get(CONF_MIN_INCREASE, DEFAULT_MIN_INCREASE)): selector.NumberSelector(
                         selector.NumberSelectorConfig(min=1, max=100, step=1, unit_of_measurement="%")

@@ -46,6 +46,7 @@ class PlantManagerEngineTests(unittest.TestCase):
             "moisture_sensor_entity_id": "sensor.office_plant_moisture",
             "battery_sensor_entity_id": "sensor.office_plant_battery",
             "low_threshold": 25.0,
+            "battery_low_threshold": 15.0,
             "min_increase": 5.0,
             "min_interval_days": 1,
             "alerts_enabled": True,

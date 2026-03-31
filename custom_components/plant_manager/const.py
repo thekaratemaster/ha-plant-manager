@@ -16,6 +16,7 @@ CONF_PLANT_LOCATION = "location_label"
 CONF_MOISTURE_ENTITY = "moisture_sensor_entity_id"
 CONF_BATTERY_ENTITY = "battery_sensor_entity_id"
 CONF_LOW_THRESHOLD = "low_threshold"
+CONF_BATTERY_LOW_THRESHOLD = "battery_low_threshold"
 CONF_MIN_INCREASE = "min_increase"
 CONF_MIN_INTERVAL_DAYS = "min_interval_days"
 CONF_ALERTS_ENABLED = "alerts_enabled"
@@ -26,6 +27,7 @@ CONF_PLANT_CALENDAR = "calendar_entity_id"
 DEFAULT_NOTIFY_SERVICE = ""
 DEFAULT_DIGEST_TIMES = "07:00"
 DEFAULT_LOW_THRESHOLD = 30.0
+DEFAULT_BATTERY_LOW_THRESHOLD = 15.0
 DEFAULT_MIN_INCREASE = 15.0
 DEFAULT_MIN_INTERVAL_DAYS = 3
 

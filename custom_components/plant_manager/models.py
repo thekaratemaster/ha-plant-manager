@@ -21,6 +21,7 @@ class Plant:
     moisture_sensor_entity_id: str
     battery_sensor_entity_id: str | None
     low_threshold: float
+    battery_low_threshold: float
     min_increase: float
     min_interval_days: int
     alerts_enabled: bool

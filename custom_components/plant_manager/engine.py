@@ -81,7 +81,7 @@ def evaluate_status(
     elif moisture < plant.low_threshold:
         status = STATUS_DRY
         needs_water = True
-    elif battery is not None and battery <= BATTERY_LOW_THRESHOLD:
+    elif battery is not None and battery <= plant.battery_low_threshold:
         status = STATUS_BATTERY_LOW
         needs_water = False
     else:
