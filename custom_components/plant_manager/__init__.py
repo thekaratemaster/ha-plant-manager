@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from datetime import time
 
 import voluptuous as vol
 
@@ -9,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.event import async_track_time
+from homeassistant.helpers.event import async_track_time_change
 
 from .const import (
     ATTR_PLANT_ID,
@@ -99,7 +98,7 @@ def _setup_digest_schedule(
         async def _digest_callback(_now, _slot=slot) -> None:
             await coordinator.async_send_scheduled_digest(_slot)
 
-        unsubs.append(async_track_time(hass, _digest_callback, t))
+        unsubs.append(async_track_time_change(hass, _digest_callback, hour=t.hour, minute=t.minute, second=0))
     return unsubs
 
 

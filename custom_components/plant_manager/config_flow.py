@@ -61,14 +61,18 @@ class PlantManagerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry: config_entries.ConfigEntry):
-        return PlantManagerOptionsFlow(config_entry)
+    def async_get_options_flow(_config_entry: config_entries.ConfigEntry):
+        return PlantManagerOptionsFlow()
 
 
 class PlantManagerOptionsFlow(config_entries.OptionsFlow):
-    def __init__(self, entry: config_entries.ConfigEntry) -> None:
-        self.entry = entry
-        self._plants: list[dict[str, Any]] = list(entry.options.get(CONF_PLANTS, []))
+    def __init__(self) -> None:
+        self._plants: list[dict[str, Any]] | None = None
+
+    def _get_plants(self) -> list[dict[str, Any]]:
+        if self._plants is None:
+            self._plants = list(self.config_entry.options.get(CONF_PLANTS, []))
+        return self._plants
 
     async def async_step_init(self, _user_input: dict[str, Any] | None = None):
         return self.async_show_menu(
@@ -81,15 +85,15 @@ class PlantManagerOptionsFlow(config_entries.OptionsFlow):
             return self.async_create_entry(
                 title="",
                 data={
-                    **self.entry.options,
+                    **self.config_entry.options,
                     CONF_NOTIFY_SERVICE: user_input.get(CONF_NOTIFY_SERVICE, ""),
                     CONF_DIGEST_TIMES: user_input.get(CONF_DIGEST_TIMES, DEFAULT_DIGEST_TIMES),
-                    CONF_PLANTS: self._plants,
+                    CONF_PLANTS: self._get_plants(),
                 },
             )
 
-        current_notify = self.entry.options.get(CONF_NOTIFY_SERVICE, DEFAULT_NOTIFY_SERVICE)
-        current_times = self.entry.options.get(CONF_DIGEST_TIMES, DEFAULT_DIGEST_TIMES)
+        current_notify = self.config_entry.options.get(CONF_NOTIFY_SERVICE, DEFAULT_NOTIFY_SERVICE)
+        current_times = self.config_entry.options.get(CONF_DIGEST_TIMES, DEFAULT_DIGEST_TIMES)
 
         return self.async_show_form(
             step_id="settings",
@@ -117,10 +121,10 @@ class PlantManagerOptionsFlow(config_entries.OptionsFlow):
                 CONF_ALERTS_ENABLED: bool(user_input.get(CONF_ALERTS_ENABLED, True)),
                 CONF_PLANT_NOTES: user_input.get(CONF_PLANT_NOTES) or None,
             }
-            self._plants.append(new_plant)
+            self._get_plants().append(new_plant)
             return self.async_create_entry(
                 title="",
-                data={**self.entry.options, CONF_PLANTS: self._plants},
+                data={**self.config_entry.options, CONF_PLANTS: self._get_plants()},
             )
 
         return self.async_show_form(
@@ -156,20 +160,21 @@ class PlantManagerOptionsFlow(config_entries.OptionsFlow):
         )
 
     async def async_step_remove_plant(self, user_input: dict[str, Any] | None = None):
-        if not self._plants:
+        plants = self._get_plants()
+        if not plants:
             return self.async_abort(reason="no_plants")
 
         if user_input is not None:
             ids_to_remove: list[str] = user_input.get("plant_ids", [])
-            self._plants = [p for p in self._plants if p["id"] not in ids_to_remove]
+            self._plants = [p for p in plants if p["id"] not in ids_to_remove]
             return self.async_create_entry(
                 title="",
-                data={**self.entry.options, CONF_PLANTS: self._plants},
+                data={**self.config_entry.options, CONF_PLANTS: self._plants},
             )
 
         plant_options = [
             selector.SelectOptionDict(value=p["id"], label=p[CONF_PLANT_NAME])
-            for p in self._plants
+            for p in plants
         ]
         return self.async_show_form(
             step_id="remove_plant",
