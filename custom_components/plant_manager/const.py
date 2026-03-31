@@ -20,6 +20,7 @@ CONF_MIN_INCREASE = "min_increase"
 CONF_MIN_INTERVAL_DAYS = "min_interval_days"
 CONF_ALERTS_ENABLED = "alerts_enabled"
 CONF_PLANT_NOTES = "notes"
+CONF_PLANT_CALENDAR = "calendar_entity_id"
 
 # Defaults
 DEFAULT_NOTIFY_SERVICE = ""

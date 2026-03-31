@@ -12,6 +12,7 @@ import homeassistant.helpers.selector as selector
 from .const import (
     CONF_ALERTS_ENABLED,
     CONF_BATTERY_ENTITY,
+    CONF_PLANT_CALENDAR,
     CONF_DIGEST_TIMES,
     CONF_LOW_THRESHOLD,
     CONF_MIN_INCREASE,
@@ -115,6 +116,7 @@ class PlantManagerOptionsFlow(config_entries.OptionsFlow):
                 CONF_PLANT_LOCATION: user_input.get(CONF_PLANT_LOCATION, ""),
                 CONF_MOISTURE_ENTITY: user_input[CONF_MOISTURE_ENTITY],
                 CONF_BATTERY_ENTITY: user_input.get(CONF_BATTERY_ENTITY) or None,
+                CONF_PLANT_CALENDAR: user_input.get(CONF_PLANT_CALENDAR) or None,
                 CONF_LOW_THRESHOLD: float(user_input[CONF_LOW_THRESHOLD]),
                 CONF_MIN_INCREASE: float(user_input[CONF_MIN_INCREASE]),
                 CONF_MIN_INTERVAL_DAYS: int(user_input[CONF_MIN_INTERVAL_DAYS]),
@@ -141,6 +143,9 @@ class PlantManagerOptionsFlow(config_entries.OptionsFlow):
                     ),
                     vol.Optional(CONF_BATTERY_ENTITY): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="sensor")
+                    ),
+                    vol.Optional(CONF_PLANT_CALENDAR): selector.EntitySelector(
+                        selector.EntitySelectorConfig(domain="calendar")
                     ),
                     vol.Required(CONF_LOW_THRESHOLD, default=DEFAULT_LOW_THRESHOLD): selector.NumberSelector(
                         selector.NumberSelectorConfig(min=0, max=100, step=1, unit_of_measurement="%")

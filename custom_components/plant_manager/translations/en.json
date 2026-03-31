@@ -36,6 +36,7 @@
           "location_label": "Location (e.g. Living room)",
           "moisture_sensor_entity_id": "Moisture sensor",
           "battery_sensor_entity_id": "Battery sensor (optional)",
+          "calendar_entity_id": "Calendar (optional)",
           "low_threshold": "Low moisture threshold (%)",
           "min_increase": "Minimum moisture increase to detect watering (%)",
           "min_interval_days": "Minimum days between watering notifications",

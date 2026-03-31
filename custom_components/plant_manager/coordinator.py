@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import date
+from datetime import date, timedelta
 from typing import Any, Callable
 
 from homeassistant.config_entries import ConfigEntry
@@ -11,6 +11,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
     CONF_ALERTS_ENABLED,
+    CONF_PLANT_CALENDAR,
     CONF_BATTERY_ENTITY,
     CONF_LOW_THRESHOLD,
     CONF_MIN_INCREASE,
@@ -200,10 +201,38 @@ class PlantManagerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
 
         now_str = to_iso(now)
+        today = now.date().isoformat()
+        tomorrow = (now.date() + timedelta(days=1)).isoformat()
+
         for snapshot in dry_snapshots:
             plant_state = self._store.get_plant_state(snapshot.plant.id)
             plant_state["last_notified_at"] = now_str
             self._store.set_plant_state(snapshot.plant.id, plant_state)
+
+            plant_config = next(
+                (p for p in self._entry.options.get(CONF_PLANTS, []) if p["id"] == snapshot.plant.id),
+                None,
+            )
+            if plant_config:
+                calendar_entity = plant_config.get(CONF_PLANT_CALENDAR)
+                if calendar_entity:
+                    moisture = plant_state.get("current_moisture")
+                    moisture_str = f"{moisture:.0f}%" if moisture is not None else "N/A"
+                    location = plant_config.get(CONF_PLANT_LOCATION) or "unspecified"
+                    try:
+                        await self.hass.services.async_call(
+                            "calendar",
+                            "create_event",
+                            {
+                                "summary": f"Water {plant_config[CONF_PLANT_NAME]}",
+                                "description": f"Moisture: {moisture_str}. Location: {location}",
+                                "start_date": today,
+                                "end_date": tomorrow,
+                            },
+                            target={"entity_id": calendar_entity},
+                        )
+                    except Exception as err:
+                        _LOGGER.warning("Failed to create calendar event for %s: %s", plant_config[CONF_PLANT_NAME], err)
 
         await self._store.async_save()
         self.async_set_updated_data(self._build_data())
