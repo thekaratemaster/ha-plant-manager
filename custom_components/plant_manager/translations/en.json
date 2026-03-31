@@ -3,29 +3,55 @@
     "step": {
       "user": {
         "title": "Plant Manager",
-        "description": "Connect Home Assistant to the Plant Manager add-on API.",
+        "description": "Set up plant monitoring. You can add plants after setup via Configure.",
         "data": {
-          "base_url": "Plant Manager API base URL",
-          "scan_interval": "Refresh interval in seconds"
+          "notify_service": "Notification service (e.g. notify.mobile_app_phone)",
+          "digest_times": "Daily digest times, comma-separated (e.g. 07:00,18:00)"
         }
       }
-    },
-    "error": {
-      "cannot_connect": "Unable to connect to the Plant Manager API."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Plant Manager options",
+        "title": "Plant Manager",
+        "menu_options": {
+          "add_plant": "Add a plant",
+          "remove_plant": "Remove a plant",
+          "settings": "Notification settings"
+        }
+      },
+      "settings": {
+        "title": "Notification settings",
         "data": {
-          "base_url": "Plant Manager API base URL",
-          "scan_interval": "Refresh interval in seconds"
+          "notify_service": "Notification service (e.g. notify.mobile_app_phone)",
+          "digest_times": "Daily digest times, comma-separated (e.g. 07:00,18:00)"
+        }
+      },
+      "add_plant": {
+        "title": "Add plant",
+        "data": {
+          "name": "Plant name",
+          "zone": "Zone",
+          "location_label": "Location (e.g. Living room)",
+          "moisture_sensor_entity_id": "Moisture sensor",
+          "battery_sensor_entity_id": "Battery sensor (optional)",
+          "low_threshold": "Low moisture threshold (%)",
+          "min_increase": "Minimum moisture increase to detect watering (%)",
+          "min_interval_days": "Minimum days between watering notifications",
+          "alerts_enabled": "Enable alerts",
+          "notes": "Notes"
+        }
+      },
+      "remove_plant": {
+        "title": "Remove plant",
+        "data": {
+          "plant_ids": "Plants to remove"
         }
       }
     },
-    "error": {
-      "cannot_connect": "Unable to connect to the Plant Manager API."
+    "abort": {
+      "no_plants": "No plants configured yet."
     }
   }
 }

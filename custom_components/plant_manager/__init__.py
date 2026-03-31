@@ -1,58 +1,54 @@
 from __future__ import annotations
 
+import logging
+from datetime import time
+
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.event import async_track_time
 
-from .api import PlantManagerApiClient, PlantManagerApiError
 from .const import (
-    ATTR_ENTRY_ID,
     ATTR_PLANT_ID,
-    CONF_BASE_URL,
-    CONF_SCAN_INTERVAL,
-    DEFAULT_BASE_URL,
-    DEFAULT_SCAN_INTERVAL,
+    CONF_DIGEST_TIMES,
+    CONF_PLANTS,
+    DEFAULT_DIGEST_TIMES,
     DOMAIN,
     PLATFORMS,
     SERVICE_MARK_WATERED,
-    SERVICE_REFRESH,
     SERVICE_SEND_DIGEST_NOW,
 )
 from .coordinator import PlantManagerCoordinator
+from .storage import PlantManagerStore
+
+_LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+async def async_setup(hass: HomeAssistant, _config: dict) -> bool:
     hass.data.setdefault(DOMAIN, {})
-    await _async_ensure_services(hass)
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
-    base_url = (entry.options.get(CONF_BASE_URL) or entry.data.get(CONF_BASE_URL) or DEFAULT_BASE_URL).strip()
-    scan_interval = int(entry.options.get(CONF_SCAN_INTERVAL, entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)))
 
-    api = PlantManagerApiClient(async_get_clientsession(hass), base_url)
-    try:
-        await api.health()
-    except PlantManagerApiError as exc:
-        raise ConfigEntryNotReady(str(exc)) from exc
+    store = PlantManagerStore(hass)
+    coordinator = PlantManagerCoordinator(hass, entry, store)
+    await coordinator.async_setup()
 
-    coordinator = PlantManagerCoordinator(hass, api=api, scan_interval=scan_interval)
-    await coordinator.async_config_entry_first_refresh()
+    unsub_digest = _setup_digest_schedule(hass, entry, coordinator)
 
     hass.data[DOMAIN][entry.entry_id] = {
-        "api": api,
         "coordinator": coordinator,
+        "unsub_digest": unsub_digest,
         "update_listener": entry.add_update_listener(_async_reload_entry),
     }
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    await _async_ensure_services(hass)
+    _async_ensure_services(hass)
     return True
 
 
@@ -61,78 +57,87 @@ async def _async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    data = hass.data[DOMAIN].get(entry.entry_id, {})
-    unsub = data.get("update_listener")
+    runtime = hass.data[DOMAIN].get(entry.entry_id, {})
+
+    unsub = runtime.get("update_listener")
     if unsub:
         unsub()
+
+    for unsub_fn in runtime.get("unsub_digest", []):
+        unsub_fn()
+
+    coordinator: PlantManagerCoordinator | None = runtime.get("coordinator")
+    if coordinator:
+        await coordinator.async_teardown()
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id, None)
         if not hass.data[DOMAIN]:
-            for service_name in (SERVICE_MARK_WATERED, SERVICE_REFRESH, SERVICE_SEND_DIGEST_NOW):
+            for service_name in (SERVICE_MARK_WATERED, SERVICE_SEND_DIGEST_NOW):
                 if hass.services.has_service(DOMAIN, service_name):
                     hass.services.async_remove(DOMAIN, service_name)
     return unload_ok
 
 
-async def _async_ensure_services(hass: HomeAssistant) -> None:
+def _setup_digest_schedule(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    coordinator: PlantManagerCoordinator,
+) -> list:
+    raw = entry.options.get(CONF_DIGEST_TIMES, DEFAULT_DIGEST_TIMES)
+    slots = [s.strip() for s in raw.split(",")] if isinstance(raw, str) else list(raw)
+    unsubs = []
+    for slot in slots:
+        try:
+            hour, minute = map(int, slot.split(":", 1))
+            t = time(hour, minute)
+        except (ValueError, AttributeError):
+            _LOGGER.warning("Invalid digest time %r — skipping", slot)
+            continue
+
+        async def _digest_callback(_now, _slot=slot) -> None:
+            await coordinator.async_send_scheduled_digest(_slot)
+
+        unsubs.append(async_track_time(hass, _digest_callback, t))
+    return unsubs
+
+
+def _async_ensure_services(hass: HomeAssistant) -> None:
     if hass.services.has_service(DOMAIN, SERVICE_MARK_WATERED):
         return
 
     async def handle_mark_watered(call: ServiceCall) -> None:
-        runtime = _select_runtime(hass, call.data.get(ATTR_ENTRY_ID))
-        if runtime is None:
-            raise HomeAssistantError("Plant Manager is not configured")
-        try:
-            await runtime["api"].mark_watered(call.data[ATTR_PLANT_ID])
-            await runtime["coordinator"].async_request_refresh()
-        except PlantManagerApiError as exc:
-            raise HomeAssistantError(str(exc)) from exc
+        coordinator = _get_coordinator(hass)
+        plant_id: str = call.data[ATTR_PLANT_ID]
+        if not any(
+            p["id"] == plant_id
+            for p in coordinator._entry.options.get(CONF_PLANTS, [])
+        ):
+            raise HomeAssistantError(f"Plant {plant_id!r} not found")
+        coordinator.mark_watered(plant_id)
 
-    async def handle_refresh(call: ServiceCall) -> None:
-        runtime = _select_runtime(hass, call.data.get(ATTR_ENTRY_ID))
-        if runtime is None:
-            raise HomeAssistantError("Plant Manager is not configured")
-        await runtime["coordinator"].async_request_refresh()
-
-    async def handle_send_digest(call: ServiceCall) -> None:
-        runtime = _select_runtime(hass, call.data.get(ATTR_ENTRY_ID))
-        if runtime is None:
-            raise HomeAssistantError("Plant Manager is not configured")
-        try:
-            await runtime["api"].send_digest_now()
-            await runtime["coordinator"].async_request_refresh()
-        except PlantManagerApiError as exc:
-            raise HomeAssistantError(str(exc)) from exc
+    async def handle_send_digest(_call: ServiceCall) -> None:
+        coordinator = _get_coordinator(hass)
+        await coordinator.async_send_digest()
 
     hass.services.async_register(
         DOMAIN,
         SERVICE_MARK_WATERED,
         handle_mark_watered,
-        schema=vol.Schema(
-            {
-                vol.Required(ATTR_PLANT_ID): cv.string,
-                vol.Optional(ATTR_ENTRY_ID): cv.string,
-            }
-        ),
-    )
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_REFRESH,
-        handle_refresh,
-        schema=vol.Schema({vol.Optional(ATTR_ENTRY_ID): cv.string}),
+        schema=vol.Schema({vol.Required(ATTR_PLANT_ID): cv.string}),
     )
     hass.services.async_register(
         DOMAIN,
         SERVICE_SEND_DIGEST_NOW,
         handle_send_digest,
-        schema=vol.Schema({vol.Optional(ATTR_ENTRY_ID): cv.string}),
+        schema=vol.Schema({}),
     )
 
 
-def _select_runtime(hass: HomeAssistant, entry_id: str | None) -> dict | None:
+def _get_coordinator(hass: HomeAssistant) -> PlantManagerCoordinator:
     runtimes = hass.data.get(DOMAIN, {})
-    if entry_id:
-        return runtimes.get(entry_id)
-    return next(iter(runtimes.values()), None)
+    runtime = next(iter(runtimes.values()), None)
+    if runtime is None:
+        raise HomeAssistantError("Plant Manager is not configured")
+    return runtime["coordinator"]
