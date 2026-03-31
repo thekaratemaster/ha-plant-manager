@@ -69,6 +69,7 @@ class PlantManagerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class PlantManagerOptionsFlow(config_entries.OptionsFlow):
     def __init__(self) -> None:
         self._plants: list[dict[str, Any]] | None = None
+        self._editing_plant_id: str | None = None
 
     def _get_plants(self) -> list[dict[str, Any]]:
         if self._plants is None:
@@ -78,7 +79,7 @@ class PlantManagerOptionsFlow(config_entries.OptionsFlow):
     async def async_step_init(self, _user_input: dict[str, Any] | None = None):
         return self.async_show_menu(
             step_id="init",
-            menu_options=["add_plant", "remove_plant", "settings"],
+            menu_options=["add_plant", "edit_plant", "remove_plant", "settings"],
         )
 
     async def async_step_settings(self, user_input: dict[str, Any] | None = None):
@@ -158,6 +159,92 @@ class PlantManagerOptionsFlow(config_entries.OptionsFlow):
                     ),
                     vol.Optional(CONF_ALERTS_ENABLED, default=True): selector.BooleanSelector(),
                     vol.Optional(CONF_PLANT_NOTES, default=""): selector.TextSelector(
+                        selector.TextSelectorConfig(multiline=True)
+                    ),
+                }
+            ),
+        )
+
+    async def async_step_edit_plant(self, user_input: dict[str, Any] | None = None):
+        plants = self._get_plants()
+        if not plants:
+            return self.async_abort(reason="no_plants")
+
+        if user_input is not None:
+            self._editing_plant_id = user_input["plant_id"]
+            return await self.async_step_edit_plant_form()
+
+        plant_options = [
+            selector.SelectOptionDict(value=p["id"], label=p[CONF_PLANT_NAME])
+            for p in plants
+        ]
+        return self.async_show_form(
+            step_id="edit_plant",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("plant_id"): selector.SelectSelector(
+                        selector.SelectSelectorConfig(options=plant_options)
+                    ),
+                }
+            ),
+        )
+
+    async def async_step_edit_plant_form(self, user_input: dict[str, Any] | None = None):
+        plants = self._get_plants()
+        plant = next((p for p in plants if p["id"] == self._editing_plant_id), None)
+        if plant is None:
+            return self.async_abort(reason="no_plants")
+
+        if user_input is not None:
+            updated = {
+                **plant,
+                CONF_PLANT_NAME: user_input[CONF_PLANT_NAME],
+                CONF_PLANT_ZONE: user_input[CONF_PLANT_ZONE],
+                CONF_PLANT_LOCATION: user_input.get(CONF_PLANT_LOCATION, ""),
+                CONF_MOISTURE_ENTITY: user_input[CONF_MOISTURE_ENTITY],
+                CONF_BATTERY_ENTITY: user_input.get(CONF_BATTERY_ENTITY) or None,
+                CONF_PLANT_CALENDAR: user_input.get(CONF_PLANT_CALENDAR) or None,
+                CONF_LOW_THRESHOLD: float(user_input[CONF_LOW_THRESHOLD]),
+                CONF_MIN_INCREASE: float(user_input[CONF_MIN_INCREASE]),
+                CONF_MIN_INTERVAL_DAYS: int(user_input[CONF_MIN_INTERVAL_DAYS]),
+                CONF_ALERTS_ENABLED: bool(user_input.get(CONF_ALERTS_ENABLED, True)),
+                CONF_PLANT_NOTES: user_input.get(CONF_PLANT_NOTES) or None,
+            }
+            self._plants = [updated if p["id"] == self._editing_plant_id else p for p in plants]
+            return self.async_create_entry(
+                title="",
+                data={**self.config_entry.options, CONF_PLANTS: self._plants},
+            )
+
+        return self.async_show_form(
+            step_id="edit_plant_form",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_PLANT_NAME, default=plant.get(CONF_PLANT_NAME, "")): selector.TextSelector(),
+                    vol.Required(CONF_PLANT_ZONE, default=plant.get(CONF_PLANT_ZONE, "indoor")): selector.SelectSelector(
+                        selector.SelectSelectorConfig(options=["indoor", "outdoor"])
+                    ),
+                    vol.Optional(CONF_PLANT_LOCATION, default=plant.get(CONF_PLANT_LOCATION, "")): selector.TextSelector(),
+                    vol.Required(CONF_MOISTURE_ENTITY, default=plant.get(CONF_MOISTURE_ENTITY, "")): selector.EntitySelector(
+                        selector.EntitySelectorConfig(domain="sensor")
+                    ),
+                    vol.Optional(CONF_BATTERY_ENTITY, default=plant.get(CONF_BATTERY_ENTITY) or vol.UNDEFINED): selector.EntitySelector(
+                        selector.EntitySelectorConfig(domain="sensor")
+                    ),
+                    vol.Optional(CONF_PLANT_CALENDAR, default=plant.get(CONF_PLANT_CALENDAR) or vol.UNDEFINED): selector.EntitySelector(
+                        selector.EntitySelectorConfig(domain="calendar")
+                    ),
+                    vol.Required(CONF_LOW_THRESHOLD, default=plant.get(CONF_LOW_THRESHOLD, DEFAULT_LOW_THRESHOLD)): selector.NumberSelector(
+                        selector.NumberSelectorConfig(min=0, max=100, step=1, unit_of_measurement="%")
+                    ),
+                    vol.Required(CONF_MIN_INCREASE, default=plant.get(CONF_MIN_INCREASE, DEFAULT_MIN_INCREASE)): selector.NumberSelector(
+                        selector.NumberSelectorConfig(min=1, max=100, step=1, unit_of_measurement="%")
+                    ),
+                    vol.Required(CONF_MIN_INTERVAL_DAYS, default=plant.get(CONF_MIN_INTERVAL_DAYS, DEFAULT_MIN_INTERVAL_DAYS)): selector.NumberSelector(
+                        selector.NumberSelectorConfig(min=1, max=90, step=1)
+                    ),
+                    vol.Optional(CONF_ALERTS_ENABLED, default=plant.get(CONF_ALERTS_ENABLED, True)): selector.BooleanSelector(),
+                    vol.Optional(CONF_PLANT_NOTES, default=plant.get(CONF_PLANT_NOTES) or ""): selector.TextSelector(
                         selector.TextSelectorConfig(multiline=True)
                     ),
                 }

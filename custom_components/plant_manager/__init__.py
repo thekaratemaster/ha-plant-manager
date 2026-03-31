@@ -7,7 +7,7 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import config_validation as cv, device_registry as dr, entity_registry as er
 from homeassistant.helpers.event import async_track_time_change
 
 from .const import (
@@ -48,6 +48,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     _async_ensure_services(hass)
+    _cleanup_orphaned_devices(hass, entry)
     return True
 
 
@@ -131,6 +132,17 @@ def _async_ensure_services(hass: HomeAssistant) -> None:
         handle_send_digest,
         schema=vol.Schema({}),
     )
+
+
+def _cleanup_orphaned_devices(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Remove devices (and their entities) for plants that no longer exist in options."""
+    active_plant_ids = {p["id"] for p in entry.options.get(CONF_PLANTS, [])}
+    device_registry = dr.async_get(hass)
+    for device_entry in dr.async_entries_for_config_entry(device_registry, entry.entry_id):
+        for domain, identifier in device_entry.identifiers:
+            if domain == DOMAIN and identifier not in (entry.entry_id,) and identifier not in active_plant_ids:
+                device_registry.async_remove_device(device_entry.id)
+                break
 
 
 def _get_coordinator(hass: HomeAssistant) -> PlantManagerCoordinator:

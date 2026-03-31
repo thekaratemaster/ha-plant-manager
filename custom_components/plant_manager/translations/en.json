@@ -17,8 +17,31 @@
         "title": "Plant Manager",
         "menu_options": {
           "add_plant": "Add a plant",
+          "edit_plant": "Edit a plant",
           "remove_plant": "Remove a plant",
           "settings": "Notification settings"
+        }
+      },
+      "edit_plant": {
+        "title": "Edit plant — select plant",
+        "data": {
+          "plant_id": "Plant to edit"
+        }
+      },
+      "edit_plant_form": {
+        "title": "Edit plant",
+        "data": {
+          "name": "Plant name",
+          "zone": "Zone",
+          "location_label": "Location",
+          "moisture_sensor_entity_id": "Moisture sensor",
+          "battery_sensor_entity_id": "Battery sensor (optional)",
+          "calendar_entity_id": "Calendar (optional)",
+          "low_threshold": "Low moisture threshold (%)",
+          "min_increase": "Minimum moisture increase to detect watering (%)",
+          "min_interval_days": "Minimum days between watering notifications",
+          "alerts_enabled": "Enable alerts",
+          "notes": "Notes"
         }
       },
       "settings": {
