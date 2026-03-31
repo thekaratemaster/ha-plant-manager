@@ -8,7 +8,7 @@ import types
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
-PKG_DIR = ROOT / "addons" / "plant_manager" / "app"
+PKG_DIR = ROOT / "custom_components" / "plant_manager"
 PKG_NAME = "test_plant_manager_addon"
 
 
