@@ -88,6 +88,12 @@ class PlantManagerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if new_state is None:
             return
 
+        # Ignore unavailable/unknown transitions — Ecowitt and similar push-based
+        # sensors briefly drop to these states between transmissions (~70s for WH51).
+        # We keep the last known good reading rather than flipping to sensor_unavailable.
+        if new_state.state in ("unavailable", "unknown"):
+            return
+
         for plant_config in self._entry.options.get(CONF_PLANTS, []):
             plant_id: str = plant_config["id"]
             is_moisture = plant_config.get(CONF_MOISTURE_ENTITY) == entity_id
