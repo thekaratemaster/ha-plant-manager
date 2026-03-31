@@ -90,7 +90,6 @@ def _setup_digest_schedule(
     for slot in slots:
         try:
             hour, minute = map(int, slot.split(":", 1))
-            t = time(hour, minute)
         except (ValueError, AttributeError):
             _LOGGER.warning("Invalid digest time %r — skipping", slot)
             continue
@@ -98,7 +97,7 @@ def _setup_digest_schedule(
         async def _digest_callback(_now, _slot=slot) -> None:
             await coordinator.async_send_scheduled_digest(_slot)
 
-        unsubs.append(async_track_time_change(hass, _digest_callback, hour=t.hour, minute=t.minute, second=0))
+        unsubs.append(async_track_time_change(hass, _digest_callback, hour=hour, minute=minute, second=0))
     return unsubs
 
 
