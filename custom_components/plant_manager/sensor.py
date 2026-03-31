@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfTime
+from homeassistant.const import PERCENTAGE, UnitOfTime
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -29,6 +29,7 @@ async def async_setup_entry(
             new_entities.extend(
                 [
                     PlantStatusSensor(coordinator, entry.entry_id, plant_id),
+                    PlantMoistureSensor(coordinator, entry.entry_id, plant_id),
                     PlantLastWateredSensor(coordinator, entry.entry_id, plant_id),
                     PlantDaysSinceWateredSensor(coordinator, entry.entry_id, plant_id),
                 ]
@@ -76,6 +77,21 @@ class PlantStatusSensor(PlantManagerPlantEntity, SensorEntity):
     def native_value(self):
         plant = self.plant or {}
         return plant.get("status") or plant.get("current_status")
+
+
+class PlantMoistureSensor(PlantManagerPlantEntity, SensorEntity):
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_suggested_display_precision = 0
+
+    def __init__(self, coordinator: PlantManagerCoordinator, entry_id: str, plant_id: str) -> None:
+        super().__init__(coordinator, entry_id, plant_id, "moisture")
+        self._attr_name = "Moisture"
+
+    @property
+    def native_value(self):
+        plant = self.plant or {}
+        return plant.get("current_moisture")
 
 
 class PlantLastWateredSensor(PlantManagerPlantEntity, SensorEntity):
