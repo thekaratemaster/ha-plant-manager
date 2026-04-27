@@ -1,6 +1,5 @@
 {
   "name": "Plant Manager",
   "content_in_root": false,
-  "homeassistant": "2024.4.0",
-  "filename": "plant_manager.zip"
+  "homeassistant": "2024.4.0"
 }
