@@ -52,7 +52,7 @@
         "data_description": {
           "moisture_sensor_entity_id": "The sensor entity that reports soil moisture for this plant.",
           "battery_sensor_entity_id": "Optional. Monitors the sensor battery and alerts when low.",
-          "calendar_entity_id": "Optional. When a watering reminder fires, an all-day 'Water {plant}' event will be created on this calendar.",
+          "calendar_entity_id": "Optional. When a watering reminder fires, an all-day watering event will be created on this calendar.",
           "low_threshold": "The plant is flagged as needing water when moisture drops below this value.",
           "battery_low_threshold": "For WH51 and similar voltage-reporting sensors, enter the voltage level to treat as low (e.g. 1.1 for AA batteries). For percentage-based battery sensors, enter a percentage (e.g. 15).",
           "min_increase": "A moisture reading must rise by at least this amount to be counted as a watering event. Prevents false detections from sensor noise.",
@@ -93,7 +93,7 @@
           "location_label": "Free-text location shown in notifications and calendar events (e.g. 'Family Room', 'Front Door').",
           "moisture_sensor_entity_id": "The sensor entity that reports soil moisture for this plant.",
           "battery_sensor_entity_id": "Optional. Monitors the sensor battery and alerts when low.",
-          "calendar_entity_id": "Optional. When a watering reminder fires, an all-day 'Water {plant}' event will be created on this calendar.",
+          "calendar_entity_id": "Optional. When a watering reminder fires, an all-day watering event will be created on this calendar.",
           "low_threshold": "The plant is flagged as needing water when moisture drops below this value. Typical indoor plants: 25–35%. Succulents/cacti: 10–15%.",
           "battery_low_threshold": "For WH51 and similar voltage-reporting sensors, enter the voltage level to treat as low (e.g. 1.1 for AA batteries). For percentage-based battery sensors, enter a percentage (e.g. 15).",
           "min_increase": "A moisture reading must rise by at least this amount to be counted as a watering event. Prevents false detections from sensor noise. Recommended: 5–10%.",
