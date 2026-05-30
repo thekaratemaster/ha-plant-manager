@@ -111,6 +111,7 @@ class PlantManagerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._process_sensor_change(plant_id, plant_config, moisture, battery)
             break
 
+    @callback
     def _process_sensor_change(
         self,
         plant_id: str,
@@ -164,6 +165,7 @@ class PlantManagerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         battery = self._current_battery(plant_config)
         self._process_sensor_change(plant_id, plant_config, moisture, battery)
 
+    @callback
     def mark_watered(self, plant_id: str) -> None:
         now_str = to_iso(now_utc())
         plant_state = self._store.get_plant_state(plant_id)
