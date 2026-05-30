@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import date, timedelta
+from datetime import timedelta
 from typing import Any, Callable
 
 from homeassistant.config_entries import ConfigEntry
@@ -249,7 +249,7 @@ class PlantManagerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return True
 
     async def async_send_scheduled_digest(self, slot: str) -> None:
-        today = date.today().isoformat()
+        today = now_utc().date().isoformat()
         markers = self._store.get_digest_markers()
         if markers.get(slot) == today:
             return

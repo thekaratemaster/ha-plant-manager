@@ -147,7 +147,8 @@ def _cleanup_orphaned_devices(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
 def _get_coordinator(hass: HomeAssistant) -> PlantManagerCoordinator:
     runtimes = hass.data.get(DOMAIN, {})
-    runtime = next(iter(runtimes.values()), None)
-    if runtime is None:
+    if not runtimes:
         raise HomeAssistantError("Plant Manager is not configured")
-    return runtime["coordinator"]
+    if len(runtimes) > 1:
+        _LOGGER.warning("Multiple Plant Manager config entries found; using the first one")
+    return next(iter(runtimes.values()))["coordinator"]
