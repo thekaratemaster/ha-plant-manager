@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -23,7 +24,7 @@ class PlantManagerStore:
         await self._store.async_save(self._data)
 
     def get_plant_state(self, plant_id: str) -> dict[str, Any]:
-        return dict(self._data.get("plant_states", {}).get(plant_id, {}))
+        return copy.deepcopy(self._data.get("plant_states", {}).get(plant_id, {}))
 
     def set_plant_state(self, plant_id: str, state: dict[str, Any]) -> None:
         self._data.setdefault("plant_states", {})[plant_id] = state

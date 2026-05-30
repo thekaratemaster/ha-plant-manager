@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import date, timedelta
+from datetime import timedelta
 from typing import Any, Callable
 
 from homeassistant.config_entries import ConfigEntry
@@ -111,6 +111,7 @@ class PlantManagerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._process_sensor_change(plant_id, plant_config, moisture, battery)
             break
 
+    @callback
     def _process_sensor_change(
         self,
         plant_id: str,
@@ -164,6 +165,7 @@ class PlantManagerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         battery = self._current_battery(plant_config)
         self._process_sensor_change(plant_id, plant_config, moisture, battery)
 
+    @callback
     def mark_watered(self, plant_id: str) -> None:
         now_str = to_iso(now_utc())
         plant_state = self._store.get_plant_state(plant_id)
@@ -247,7 +249,7 @@ class PlantManagerCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return True
 
     async def async_send_scheduled_digest(self, slot: str) -> None:
-        today = date.today().isoformat()
+        today = now_utc().date().isoformat()
         markers = self._store.get_digest_markers()
         if markers.get(slot) == today:
             return

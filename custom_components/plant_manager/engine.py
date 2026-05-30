@@ -111,6 +111,13 @@ def update_watering_detection(
     previous_pending = plant.pending_previous_moisture
 
     if moisture is None:
+        if pending_since and (now - pending_since).total_seconds() >= PENDING_WATERING_TIMEOUT_SECONDS:
+            updates.update(
+                {
+                    "pending_watering_since": None,
+                    "pending_previous_moisture": None,
+                }
+            )
         return updates, None
 
     if pending_since and previous_pending is not None:
