@@ -1,6 +1,6 @@
 # ha-plant-manager
 
-Plant Manager is a Home Assistant custom integration for monitoring plant soil moisture, detecting watering events, and sending scheduled digest notifications.
+Plant Manager is a Home Assistant custom integration for monitoring plant soil moisture, detecting watering events, and sending scheduled digest notifications. It works with any sensor entity that reports a numeric moisture value — Z-Wave, Zigbee, Wi-Fi, Ecowitt, SDR, Bluetooth, or anything else already in your HA setup.
 
 ## Architecture
 
